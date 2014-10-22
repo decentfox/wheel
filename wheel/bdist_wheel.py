@@ -74,12 +74,14 @@ class bdist_wheel(Command):
                     ('universal', None,
                      "make a universal wheel"
                      " (default: false)"),
+                    ('pyc-only', None,
+                     "make a pyc-only wheel (default: false)"),
                     ('python-tag=', None,
                      "Python implementation compatibility tag"
                      " (default: py%s)" % get_impl_ver()[0]),
                     ]
 
-    boolean_options = ['keep-temp', 'skip-build', 'relative', 'universal']
+    boolean_options = ['keep-temp', 'skip-build', 'relative', 'universal', 'pyc-only']
 
     def initialize_options(self):
         self.bdist_dir = None
@@ -96,6 +98,7 @@ class bdist_wheel(Command):
         self.owner = None
         self.group = None
         self.universal = False
+        self.pyc_only = False
         self.python_tag = 'py' + get_impl_ver()[0]
 
     def finalize_options(self):
@@ -221,14 +224,15 @@ class bdist_wheel(Command):
                 self.bdist_dir,
                 self._ensure_relative(install.install_base))
 
-        import compileall
-        compileall.compile_dir(archive_root, legacy=True, optimize=2)
-        for base, dirs, files in os.walk(archive_root):
-            for name in files:
-                if name.endswith('.py'):
-                    path = os.path.join(base, name)
-                    logger.info("Deleting %s", path)
-                    os.unlink(path)
+        if self.pyc_only:
+            import compileall
+            compileall.compile_dir(archive_root, legacy=True, optimize=2)
+            for base, dirs, files in os.walk(archive_root):
+                for name in files:
+                    if name.endswith('.py'):
+                        path = os.path.join(base, name)
+                        logger.info("Deleting %s", path)
+                        os.unlink(path)
 
         self.set_undefined_options(
             'install_egg_info', ('target', 'egginfo_dir'))
