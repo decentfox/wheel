@@ -221,6 +221,15 @@ class bdist_wheel(Command):
                 self.bdist_dir,
                 self._ensure_relative(install.install_base))
 
+        import compileall
+        compileall.compile_dir(archive_root, legacy=True, optimize=2)
+        for base, dirs, files in os.walk(archive_root):
+            for name in files:
+                if name.endswith('.py'):
+                    path = os.path.join(base, name)
+                    logger.info("Deleting %s", path)
+                    os.unlink(path)
+
         self.set_undefined_options(
             'install_egg_info', ('target', 'egginfo_dir'))
         self.distinfo_dir = os.path.join(self.bdist_dir,
