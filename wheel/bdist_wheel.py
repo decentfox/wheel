@@ -133,7 +133,7 @@ class bdist_wheel(Command):
     def get_tag(self):
         supported_tags = pep425tags.get_supported()
 
-        if self.root_is_pure:
+        if self.root_is_pure and not self.pyc_only:
             if self.universal:
                 impl = 'py2.py3'
             else:
